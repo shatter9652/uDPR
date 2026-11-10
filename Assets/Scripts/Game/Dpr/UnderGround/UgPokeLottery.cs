@@ -51,6 +51,12 @@ namespace Dpr.UnderGround
             global::System.Collections.Generic.List<PokeRate> rates = new global::System.Collections.Generic.List<PokeRate>();
             for (int i = 0; i < specials.Length; i++)
                 rates.Add(new PokeRate(specials[i].monsno, versionID == 0 ? specials[i].Dspecialrate : specials[i].Pspecialrate));
+#if !SWITCH
+            // The weighted draw can fall back to the last candidate when it hits the upper bound.
+            rates.RemoveAll(poke => poke.rate <= 0);
+            if (rates.Count == 0)
+                return global::Pml.MonsNo.NULL;
+#endif
             string log = "";
             rates.ForEach(poke =>
             {
