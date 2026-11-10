@@ -108,6 +108,7 @@ public static class BdspD7
         try
         {
             var list = Path.Combine(work, "d7_verify.txt");
+            int inspectedTextures = 0;
             if (File.Exists(list))
                 foreach (var p in File.ReadAllLines(list))
                 {
@@ -119,6 +120,12 @@ public static class BdspD7
                     sb.AppendLine(tex == null ? string.Format("{0}: {1}", p, o == null ? "NULL" : o.GetType().Name)
                         : string.Format("{0}: Texture2D {1} {2}x{3} mips {4} filter {5} wrap {6}/{7} aniso {8} guid {9} fileID {10}", p, tex.format,
                             tex.width, tex.height, tex.mipmapCount, tex.filterMode, tex.wrapModeU, tex.wrapModeV, tex.anisoLevel, guid, fid));
+                    // Only the metadata is needed for the report. Release unused textures between batches.
+                    if (++inspectedTextures % 1000 == 0)
+                    {
+                        EditorUtility.UnloadUnusedAssetsImmediate();
+                        GC.Collect();
+                    }
                 }
             var mats = Path.Combine(work, "d7_verify_materials.txt");
             if (File.Exists(mats))

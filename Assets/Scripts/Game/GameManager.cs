@@ -129,6 +129,9 @@ public class GameManager : global::SmartPoint.AssetAssistant.SingletonMonoBehavi
         }
 	[global::SmartPoint.AssetAssistant.AssetAssistantInitializeMethodAttribute(0)]
 	private static void Initialize() {
+#if !SWITCH
+            global::PcPlatform.PcConfig.ConfigureEdition(global::SmartPoint.AssetAssistant.StartupSettings.buildVersion);
+#endif
             global::Dpr.NX.UserAccount.Open();
             global::INL1.IlcaNetBase.Init(199);
             global::PlayReportManager.Init();
@@ -232,8 +235,12 @@ public class GameManager : global::SmartPoint.AssetAssistant.SingletonMonoBehavi
 	private void OnUpdate(float deltaTime) {
             if (connector != null && connector.sceneID != global::SceneID.Title)
             {
+#if !SWITCH
+                if (global::PlayerWork.cassetVersion != global::PcPlatform.PcConfig.CassetVersion)
+#else
                 // 48 = GRP_OPT_VERSION.GRP_OPT_VER_DPR_B (Brilliant Diamond)
                 if (global::PlayerWork.cassetVersion != 48)
+#endif
                 {
                     global::RestartUtility.RestartProgram();
                     return;

@@ -26,8 +26,27 @@ namespace PcPlatform
         public static string TimeZoneLocation = "Asia/Bangkok";
         public static string TimeZoneAbbreviation = "+07";
 
-        // BDSP Brilliant Diamond title id (the workspace dump's build); the save directory is keyed by it.
-        public const ulong ApplicationId = 0x0100000011D90000UL;
+        public static bool IsShiningPearl { get; private set; }
+        public static int CassetVersion => IsShiningPearl ? global::CassetVersion.DPR_S : global::CassetVersion.DPR_B;
+        public static byte RomCode => (byte)(IsShiningPearl ? 1 : 0);
+        // The save directory is keyed by the title ID of the exported edition.
+        public static ulong ApplicationId => IsShiningPearl ? 0x010018E011D92000UL : 0x0100000011D90000UL;
+
+        public static void ConfigureEdition(string buildVersion)
+        {
+            switch (buildVersion)
+            {
+                case "delphis_MS075493D_m19820_v1_3_0":
+                    IsShiningPearl = false;
+                    break;
+                case "delphis_MS075493P_m19820_v1_3_0":
+                    IsShiningPearl = true;
+                    break;
+                default:
+                    throw new InvalidOperationException("Unsupported StartupSettings build version: " + buildVersion);
+            }
+            Log(IsShiningPearl ? "Shining Pearl v1.3.0" : "Brilliant Diamond v1.3.0");
+        }
 
         static string _root;
 

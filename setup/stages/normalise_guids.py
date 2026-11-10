@@ -30,14 +30,20 @@ REF = re.compile(rb"fileID: (-?\d+), guid: ([0-9a-f]{32})")
 DEFAULT_META = ("fileFormatVersion: 2\nguid: %s\nDefaultImporter:\n  externalObjects: {}\n  userData: \n  assetBundleName: \n"
                 "  assetBundleVariant: \n")
 DONE = "NORMALISED"
+DIAMOND_MOVIES = "StreamingAssets/Movie/dia/"
+PEARL_MOVIES = "StreamingAssets/Movie/pea/"
 
 
 def load_table():
     table = {}
+    pearl = paths.CFG.get("dump_profile") == "SP"
     with gzip.open(os.path.join(paths.SETUP_DATA, "guid_table.tsv.gz"), "rt", encoding="utf-8") as f:
         next(f)
         for line in f:
             p, g = line.rstrip("\n").split("\t")[:2]
+            if pearl and p.startswith(DIAMOND_MOVIES):
+                # The same opening and ending slots have edition-specific paths in the two exports.
+                p = PEARL_MOVIES + p[len(DIAMOND_MOVIES):].replace("/movie_dia_", "/movie_pea_", 1)
             table[p] = g
     scripts = {}
     with open(os.path.join(paths.SETUP_DATA, "script_refs.tsv"), encoding="utf-8") as f:

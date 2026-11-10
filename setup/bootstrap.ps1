@@ -22,6 +22,8 @@ param(
     [switch]$Build
 )
 $ErrorActionPreference = 'Stop'
+# A PowerShell 7 parent can pass its module path to setup.cmd's Windows PowerShell process.
+Import-Module (Join-Path $PSHOME 'Modules\Microsoft.PowerShell.Utility\Microsoft.PowerShell.Utility.psd1')
 $ProgressPreference = 'SilentlyContinue'          # Invoke-WebRequest is many times slower with the progress bar
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
@@ -90,7 +92,8 @@ function Find-DumpRoot($sel) {
     foreach ($c in $cands) { if ($c -and (Test-DumpRoot $c)) { return $c } }
     return $null
 }
-$MainSize = 37895896                              # exefs\main of BDSP v1.3.0 (setup\stages\check.py checks its sha1 too)
+$Profiles = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'data\dump_profiles.json') -Raw | ConvertFrom-Json
+$MainSizes = @($Profiles.PSObject.Properties | ForEach-Object { $_.Value.files.'exefs/main'.size })
 function Get-DumpProblem($sel, $root) {
     if (-not $root) {
         $what = if (Test-Path -LiteralPath $sel -PathType Container) {
@@ -100,8 +103,8 @@ function Get-DumpProblem($sel, $root) {
         return "$sel is not a BDSP dump folder ($what). Pick the folder that has BOTH exefs\ (with the file main) and romfs\ (with Data\) in it."
     }
     $size = (Get-Item -LiteralPath (Join-Path $root 'exefs\main')).Length
-    if ($size -ne $MainSize) {
-        return "$root\exefs\main is $size bytes - not BDSP v1.3.0 (its main is $MainSize bytes). Dump the game with the v1.3.0 update applied (exefs and romfs from base game + update)."
+    if ($size -notin $MainSizes) {
+        return "$root\exefs\main is $size bytes - expected Brilliant Diamond or Shining Pearl v1.3.0. Dump the game with the v1.3.0 update applied (exefs and romfs from base game + update)."
     }
     return $null
 }
@@ -129,7 +132,8 @@ if (-not $Unity -or -not (Test-Path -LiteralPath $Unity)) {
 Say "Unity: $Unity"
 
 # 2. the dump: -Dump, else the one saved by an earlier run, else ask; a folder that was picked (or saved) and is wrong -> ask again
-$cfgPath = Join-Path $Work 'config.json'
+$cfgPath = $env:BDSP_SETUP_CONFIG
+if (-not $cfgPath) { $cfgPath = Join-Path $Project 'SetupWork\config.json' }
 $canAsk = -not $Dump
 if (-not $Dump -and (Test-Path -LiteralPath $cfgPath)) { $Dump = (Get-Content -LiteralPath $cfgPath -Raw | ConvertFrom-Json).dump }
 $lastPick = $null
@@ -215,6 +219,7 @@ if ($Build) { $argv += '--build' }
 if ($BatchMode) {
     $cfg = if (Test-Path -LiteralPath $cfgPath) { Get-Content -LiteralPath $cfgPath -Raw | ConvertFrom-Json } else { New-Object psobject }
     $cfg | Add-Member -NotePropertyName unity_batchmode -NotePropertyValue $true -Force
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $cfgPath) | Out-Null
     $cfg | ConvertTo-Json | Set-Content -LiteralPath $cfgPath -Encoding UTF8
 }
 Say 'running the setup (several hours; Unity windows open and close by themselves - do not close them)'

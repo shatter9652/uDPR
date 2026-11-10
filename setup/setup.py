@@ -19,6 +19,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import paths  # noqa: E402
+import dump_profile  # noqa: E402
 
 PY = [sys.executable, "-I"]
 STAGES_DIR = os.path.join(paths.SETUP, "stages")
@@ -33,10 +34,11 @@ def unity_cmd(method, marker=None, *extra):
         + list(extra)
 
 
-def build_stages():
+def build_stages(planned_work=None):
     """(name, what it does, [command, ...] or None while not ported yet) - built after the config is written, so the paths in
     the commands are the configured ones."""
-    W, AA, P = paths.work, paths.AA, paths.PROJECT
+    W = paths.work if planned_work is None else lambda *parts: os.path.join(planned_work, *parts)
+    AA, P = paths.AA, paths.PROJECT
     return [
         ("check", "preflight: dump, Unity, Wwise, tools, disk, RAM", [stage_cmd("check.py")]),
         ("export", "AssetRipper exports the dump into <work>/export", [stage_cmd("ar_export.py")]),
@@ -115,7 +117,7 @@ def main():
     a = ap.parse_args()
     global paths
     if a.list:
-        for n, what, cmds in build_stages():
+        for n, what, cmds in build_stages(paths.WORK):
             print("%-15s %s%s" % (n, what, "" if cmds else "   [not ported yet]"))
         return
     cfg = dict(paths.CFG)
@@ -125,15 +127,38 @@ def main():
             cfg[k] = os.path.abspath(v)
     if a.keep_backups:
         cfg["keep_backups"] = True
-    os.makedirs(os.path.dirname(paths.CONFIG_PATH), exist_ok=True)
-    with open(paths.CONFIG_PATH, "w", encoding="utf-8") as f:
-        json.dump(cfg, f, indent=1)
-    os.environ["BDSP_SETUP_CONFIG"] = paths.CONFIG_PATH
-    paths = importlib.reload(paths)              # the configured paths, for the stage commands built below
-    stages = build_stages()
-    assert [s[0] for s in stages] == NAMES
-    state_path = paths.work("state.json")
+    work = cfg.get("work") or paths.DEFAULT_WORK
+    state_path = os.path.join(work, "state.json")
     state = json.load(open(state_path, encoding="utf-8")) if os.path.exists(state_path) else {}
+    if not a.plan:
+        try:
+            edition = dump_profile.identify(cfg.get("dump"))
+        except (OSError, ValueError) as e:
+            sys.exit("dump: %s" % e)
+        previous = cfg.get("dump_profile")
+        if previous is None and os.path.isfile(os.path.join(paths.ASSETS, "Resources", "StartupSettings.asset")):
+            previous = "BD"  # A project prepared before profiles could only have used Brilliant Diamond.
+        if previous is not None and previous != edition:
+            sys.exit("this project is set up for %s; use a fresh clone for %s" % (previous, edition))
+        work_edition = state.get("dump_profile")
+        if work_edition is None and (state or os.path.isdir(os.path.join(work, "export"))):
+            same_work = os.path.normcase(os.path.abspath(work)) == os.path.normcase(paths.WORK)
+            work_edition = previous if previous is not None and same_work else "BD"
+        if work_edition is not None and work_edition != edition:
+            sys.exit("the work folder holds %s setup data; use an empty work folder for %s" % (work_edition, edition))
+        cfg["dump_profile"] = edition
+        os.makedirs(os.path.dirname(paths.CONFIG_PATH), exist_ok=True)
+        with open(paths.CONFIG_PATH, "w", encoding="utf-8") as f:
+            json.dump(cfg, f, indent=1)
+        if state.get("dump_profile") != edition:
+            state["dump_profile"] = edition
+            os.makedirs(work, exist_ok=True)
+            with open(state_path, "w", encoding="utf-8") as f:
+                json.dump(state, f, indent=1)
+        os.environ["BDSP_SETUP_CONFIG"] = paths.CONFIG_PATH
+        paths = importlib.reload(paths)
+    stages = build_stages(work if a.plan else None)
+    assert [s[0] for s in stages] == NAMES
     names = NAMES
     if a.only:
         names = [a.only]
