@@ -258,6 +258,7 @@ public class FieldManager
 			case global::ZoneID.D05R0114:
 			case global::ZoneID.D05R0115:
 			case global::ZoneID.D05R0116:
+			case global::ZoneID.D05R0117:
 			case global::ZoneID.D06R0201:
 			case global::ZoneID.D06R0202:
 			case global::ZoneID.D06R0203:

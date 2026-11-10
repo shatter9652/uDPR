@@ -2082,10 +2082,6 @@ namespace Dpr.EvScript
                 }
             }
 
-            ZoneID zoneID = _worpEventData.Entity.transitionZone;
-            if (zoneID == ZoneID.D05R0115)
-                zoneID = ZoneID.D05R0114;
-
             int locatorIndex;
             if (_worpEventData.Entity.locatorArray != null && _worpEventData.Entity.locatorArray.Length != 0 && index < _worpEventData.Entity.locatorArray.Length)
             {
@@ -2098,7 +2094,8 @@ namespace Dpr.EvScript
                 locatorIndex = _worpEventData.Entity.locatorIndex;
             }
 
-            PlayerWork.SetTransitionZone(zoneID, locatorIndex);
+            PlayerWork.SetTransitionZone(_worpEventData.Entity.transitionZone, locatorIndex);
+            ZoneID zoneID = PlayerWork.transitionZoneID;
 
             if (ZoneWork.IsPokecen(zoneID))
             {
@@ -16032,7 +16029,7 @@ namespace Dpr.EvScript
                 case 3: entity.startVectol = global::FieldDoor.StartVectol.Right; break;
                 case 4: entity.startVectol = global::FieldDoor.StartVectol.All; break;
             }
-            entity.transitionZone = data.WarpZone == global::ZoneID.D05R0115 ? global::ZoneID.D05R0114 : data.WarpZone;
+            entity.transitionZone = data.WarpZone;
             entity.locatorIndex = data.WarpIndex;
             entity.locatorArray = locator;
             entity.callLabel = data.ScriptLabel;

@@ -86,7 +86,10 @@ public class PlayerWork : global::SmartPoint.Components.PlayerPrefsProvider<glob
 	public static global::UnityEngine.Vector2Int grid { get { return instance._saveData.playerData.mystatus.grid; } }
 	public static float height { get { return instance._saveData.playerData.mystatus.height; } }
 	public static float rotation { get { return instance._saveData.playerData.mystatus.rotation; } }
-	public static global::ZoneID transitionZoneID { get { return instance._transitionZoneID; } set { instance._transitionZoneID = value; } }
+	public static global::ZoneID transitionZoneID {
+        get { return instance._transitionZoneID; }
+        set { instance._transitionZoneID = ZoneWork.ResolveEditionZone(value, cassetVersion); }
+    }
 	public static int locatorIndex { get { return instance._locatorIndex; } set { instance._locatorIndex = value; } }
 	public static global::System.Nullable<global::DPData.LOCATION_WORK> transitionLocation { get { return instance._transitionLocation; } set { instance._transitionLocation = value; } }
 	public static bool isBattling { get { return instance._isBattling; } set { instance._isBattling = value; } }

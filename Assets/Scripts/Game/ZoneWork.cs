@@ -182,7 +182,24 @@ public class ZoneWork
 	public static bool IsSpFishingZone(global::ZoneID zone_id) { return zone_id == (global::ZoneID)(215); }
 	public static bool IsHillBackZone(global::ZoneID zone_id) { return zone_id == (global::ZoneID)(297); }
 	public static bool IsNaturalPark(global::ZoneID zone_id) { return zone_id == (global::ZoneID)(251); }
-	public static bool IsUseTenkainofueZone(global::ZoneID zone_id) { return zone_id == (global::ZoneID)(216); }
+	internal static ZoneID ResolveEditionZone(ZoneID zone, int edition) {
+        // Shared warp data can name either edition's Spear Pillar or Hall of Origin.
+        bool pearl = edition == CassetVersion.DPR_S;
+        switch (zone)
+        {
+            case ZoneID.D05R0114:
+            case ZoneID.D05R0115:
+                return pearl ? ZoneID.D05R0115 : ZoneID.D05R0114;
+            case ZoneID.D05R0116:
+            case ZoneID.D05R0117:
+                return pearl ? ZoneID.D05R0117 : ZoneID.D05R0116;
+            default:
+                return zone;
+        }
+    }
+	public static bool IsUseTenkainofueZone(global::ZoneID zone_id) {
+        return zone_id == ResolveEditionZone(ZoneID.D05R0114, PlayerWork.cassetVersion);
+    }
 	public static bool IsSafariZone(global::ZoneID zone_id) { return (zone_id >= (ZoneID)219 && zone_id <= (ZoneID)223) || zone_id == (ZoneID)224; }
 	public static int SafariZonePosID(global::ZoneID zone_id) {
         if (zone_id >= (ZoneID)219 && zone_id <= (ZoneID)223)
