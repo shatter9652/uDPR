@@ -37,7 +37,11 @@ public class Title : global::UnityEngine.MonoBehaviour
 	{
 		_moviePlayer = GetComponent<global::Dpr.Movie.MoviePlayer>();
 		_moviePlayer.Initialize(movieRendereObject);
+#if !SWITCH
+		_diaVersion = !global::PcPlatform.PcConfig.IsShiningPearl;
+#else
 		_diaVersion = true;
+#endif
 		_lang = global::PlayerWork.msgLangID;
 		_male = global::PlayerWork.playerSex;
 		_skinType = global::PlayerWork.playerStatus.body_type;

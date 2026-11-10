@@ -269,6 +269,9 @@ public class PlayerWork : global::SmartPoint.Components.PlayerPrefsProvider<glob
         global::Dpr.Box.BoxWork.SetTrayMax(18);
         // one 400-byte memset over playerData + zukanData (@02ceb1ec)
         _saveData.playerData = new PLAYER_DATA();
+#if !SWITCH
+        _saveData.playerData.mystatus.rom_code = global::PcPlatform.PcConfig.RomCode;
+#endif
         _saveData.zukanData = new ZUKAN_WORK();
         ZukanWork.Reset();
         _saveData.tr_battleData = new TR_BATTLE_DATA[707];
@@ -358,7 +361,11 @@ public class PlayerWork : global::SmartPoint.Components.PlayerPrefsProvider<glob
         return true;
     }
 	protected override bool CustomSaveOperation() {
+#if !SWITCH
+        _saveData.playerData.mystatus.rom_code = global::PcPlatform.PcConfig.RomCode;
+#else
         _saveData.playerData.mystatus.rom_code = 0;
+#endif
         ToBytes(_saveData, ref _writeSrcBuffer);
         makeSaveDataHash(ref _writeSrcBuffer);
         Dpr.NX.SaveSystem.Save(_writeSrcBuffer, _isMainSave, _isBackupSave);
@@ -394,7 +401,11 @@ public class PlayerWork : global::SmartPoint.Components.PlayerPrefsProvider<glob
     }
 	protected override bool CustomSaveAsyncOperation() {
         OnPreSave();
+#if !SWITCH
+        _saveData.playerData.mystatus.rom_code = global::PcPlatform.PcConfig.RomCode;
+#else
         _saveData.playerData.mystatus.rom_code = 0;
+#endif
         ToBytes(_saveData, ref _writeSrcBuffer);
         makeSaveDataHash(ref _writeSrcBuffer);
         Dpr.NX.SaveSystem.SaveAsync(_writeSrcBuffer, _isMainSave, _isBackupSave);

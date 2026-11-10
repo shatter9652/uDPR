@@ -5,7 +5,6 @@ Fails (exit 1) on: a dump that is not BDSP v1.3.0 (fingerprints of three files),
 no AssetRipper, missing Python packages, not enough free disk on the project's drive. Warns on low RAM.
 """
 import ctypes
-import hashlib
 import importlib
 import os
 import shutil
@@ -13,25 +12,12 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "lib"))
 import paths  # noqa: E402
+import dump_profile  # noqa: E402
 
-# BDSP v1.3.0 (Switch): sha1, size of files every correct dump has byte-identical
-FINGERPRINTS = [
-    ("exefs/main", "c99edea638aef0b4a253a74cd3e777ba4770b648", 37895896),
-    ("romfs/Data/globalgamemanagers", "761d0eacb7181b42079dabcf92187e2306496c33", 177356),
-    ("romfs/Data/StreamingAssets/AssetAssistant/Dpr.bin", "9c8159aa1aed650b9187d74b4e4d93d3174e7102", 5278300),
-]
 MIN_FREE_GB = 60          # export 23 -> assets ~31, Unity Library ~15-20, D7 work files, margin
 MIN_RAM_GB = 24           # the export needs ~21 GB (AssetRipper, heap capped at 20 GB - ar_export.HEAP_GB); Unity's first import
                           # peaked ~16 GB (atlas build); below this Windows' page file makes up the difference
 PY_PACKAGES = ["UnityPy", "numpy", "PIL", "texture2ddecoder"]
-
-
-def sha1(path):
-    h = hashlib.sha1()
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(1 << 20), b""):
-            h.update(chunk)
-    return h.hexdigest()
 
 
 def total_ram_gb():
@@ -48,16 +34,11 @@ def main():
     bad, warn = [], []
     cfg = paths.CFG
     # dump
-    if not paths.DUMP:
-        bad.append("no --dump given (the folder holding exefs\\ and romfs\\)")
-    else:
-        for rel, want, size in FINGERPRINTS:
-            p = os.path.join(paths.DUMP, *rel.split("/"))
-            if not os.path.isfile(p):
-                bad.append("dump: %s is missing (expected <dump>\\exefs\\main and <dump>\\romfs\\Data\\...)" % rel)
-            elif os.path.getsize(p) != size or sha1(p) != want:
-                bad.append("dump: %s is not the BDSP v1.3.0 file (a different game version or a damaged dump)" % rel)
-        print("dump: %s" % paths.DUMP)
+    try:
+        edition = dump_profile.identify(paths.DUMP)
+        print("dump: %s (%s)" % (paths.DUMP, dump_profile.PROFILES[edition]["name"]))
+    except (OSError, ValueError) as e:
+        bad.append("dump: %s" % e)
     # Unity
     unity = cfg.get("unity")
     if not unity or not os.path.isfile(unity):

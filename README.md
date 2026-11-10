@@ -1,11 +1,11 @@
 # uDPR
 
-**Pokémon Brilliant Diamond as a Unity project** that rebuilds the game from **your own dump**, and builds a standalone game from it. The game logic runs as compiled C#, not under emulation.
+**Pokémon Brilliant Diamond and Shining Pearl as a Unity project** that rebuilds the game from **your own dump** and builds a standalone game from it. The game logic runs as compiled C#, not under emulation.
 
 > **Made with AI.** This project was made almost entirely with AI - Claude (Anthropic), through Claude Code - directed, tested and
 > reviewed by a human.
 
-**No game files are included.** You need your own legally obtained copy of Pokémon Brilliant Diamond, updated to v1.3.0 and
+**No game files are included.** You need your own legally obtained copy of Brilliant Diamond or Shining Pearl, updated to v1.3.0 and
 dumped from your own Switch. How to dump it is not covered here.
 
 ## Status
@@ -35,8 +35,8 @@ not been played through on PC yet, so expect bugs - please report them (see [Con
    Hub on that exact version if it is missing.
 3. **Wwise 2019.2.5.7349** through the [Audiokinetic Launcher](https://www.audiokinetic.com/download/) (free account): the SDK (C++)
    with Microsoft > Windows (Visual Studio 2019). The setup tells you the one Launcher step it needs.
-4. **Your dump of Pokémon Brilliant Diamond v1.3.0** (the base game with the v1.3.0 update applied): a folder holding `exefs\` (with
-   `main`) and `romfs\` (with `Data\`). The setup checks it against the v1.3.0 files and stops on anything else.
+4. **Your dump of Brilliant Diamond or Shining Pearl v1.3.0** (the base game with the v1.3.0 update applied): a folder holding
+   `exefs\` (with `main`) and `romfs\` (with `Data\`). The setup identifies the edition from the dump's files.
 5. **About 60 GB free** on the drive that holds this folder (about 45 GB stays in use afterwards; building the standalone game
    adds about 10 GB).
 6. **RAM: 32 GB recommended.** The asset export needs about 21 GB of memory and Unity's first import up to about 16 GB. With 16 GB of
@@ -63,7 +63,8 @@ The setup:
 It takes about **3 hours** on a high-end PC, longer on slower ones. Unity windows open and close by themselves - do not close them.
 
 If anything stops it, fix the reported problem and run `setup.cmd` again: it continues where it stopped. Logs: `SetupWork\logs\`.
-The setup window's own text is kept in `SetupWork\logs\bootstrap.log`. To use a different dump folder later: `setup.cmd -Dump <folder>`.
+The setup window's own text is kept in `SetupWork\logs\bootstrap.log`. Use `setup.cmd -Dump <folder>` to relocate a dump of the
+same edition. Use a separate checkout for each edition so their generated assets and build caches stay separate.
 
 ## Updating
 
@@ -153,7 +154,7 @@ and fast-forward rows back to their defaults; your key and button bindings stay 
 
 `%USERPROFILE%\AppData\LocalLow\DefaultCompany\Dpr\`
 
-- `nn\save\...\SaveData.bin` / `Backup.bin` - your save, in the shipped format
+- `nn\save\...\SaveData.bin` / `Backup.bin` - your save, in the shipped format and separated by edition
 - `pc_settings.ini` - the PC options (display, frame rate, fast-forward, key / button bindings)
 - `Player.log` - the game's log (attach it to bug reports)
 
@@ -170,7 +171,7 @@ setup exports them from your copy.
 **Why isn't Wwise included?** The game's audio runs on Audiokinetic Wwise, whose Unity integration may not be redistributed. It is free
 to download with an Audiokinetic account; the setup copies it in from your own install.
 
-**Shining Pearl? Other versions?** Only Brilliant Diamond v1.3.0 is supported for now.
+**Shining Pearl? Other versions?** Shining Pearl v1.3.0 support is experimental. The setup accepts Brilliant Diamond and Shining Pearl v1.3.0.
 
 **PlayStation, Switch Pro or other controllers?** The game reads XInput (Xbox-type) gamepads directly. A DualShock 4, DualSense or
 Switch Pro Controller works through Steam Input or DS4Windows, which present it as an Xbox pad.

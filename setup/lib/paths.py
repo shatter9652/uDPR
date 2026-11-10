@@ -5,6 +5,7 @@ The repository root (= the Unity project) is found from this file's location. Ev
                                      BDSP_SETUP_CONFIG)
 Keys:
   dump        folder holding the user's game dump: exefs/main + romfs/Data
+  dump_profile  BD or SP, determined from the dump's fingerprints by setup.py
   unity       Unity.exe of 2019.4.27f1
   work        folder for intermediate files (default <project>/SetupWork - keep it on the project's drive: the export is MOVED
               into Assets/, never copied)
